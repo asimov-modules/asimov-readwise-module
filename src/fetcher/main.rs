@@ -23,7 +23,7 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         .skip(1)
         .map(|arg| arg.to_string_lossy().into())
         .collect();
-    
+
     if urls.is_empty() {
         return Ok(EX_OK);
     }
@@ -31,8 +31,10 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
     let Some(api_key) = getenv::var_secret("READWISE_API_KEY") else {
         return Ok(EX_CONFIG);
     };
-    
-    let config = asimov_readwise_module::api::readwise::ReadwiseConfig::new(api_key.expose_secret().to_string());
+
+    let config = asimov_readwise_module::api::readwise::ReadwiseConfig::new(
+        api_key.expose_secret().to_string(),
+    );
     let api = ReadwiseClient::new(config)?;
 
     for url in urls {
@@ -45,10 +47,10 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
                 let rt = tokio::runtime::Runtime::new()?;
                 let highlights = rt.block_on(api.fetch_highlights_from_url(&url))?;
                 serde_json::to_string(&highlights)?
-            }
+            },
             _ => {
                 return Ok(EX_UNAVAILABLE);
-            }
+            },
         };
 
         if cfg!(feature = "pretty") {

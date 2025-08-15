@@ -9,6 +9,7 @@ pub static READWISE_HIGHLIGHTS: Provider = Provider {
     url: "https://readwise.io/api/v2/highlights/",
 };
 
-pub static URL_PREFIX_TO_PROVIDER: [(&str, &'static Provider); 1] = [
-    ("https://readwise.io/api/v2/highlights/", &READWISE_HIGHLIGHTS),
-];
+pub static URL_PREFIX_TO_PROVIDER: [(&str, &'static Provider); 1] = [(
+    "https://readwise.io/api/v2/highlights/",
+    &READWISE_HIGHLIGHTS,
+)];

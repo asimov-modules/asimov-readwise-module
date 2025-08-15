@@ -2,9 +2,9 @@
 
 #![allow(unused)]
 
-use serde::{Deserialize, Serialize};
 use anyhow::Result;
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,15 +67,16 @@ impl ReadwiseClient {
         format!("Token {}", self.config.access_token)
     }
 
-    pub async fn fetch_highlights(&self, query_params: Option<HashMap<String, String>>) -> Result<HighlightsResponse> {
+    pub async fn fetch_highlights(
+        &self,
+        query_params: Option<HashMap<String, String>>,
+    ) -> Result<HighlightsResponse> {
         let url = self.config.endpoint_url("/highlights/");
-        
-        let params: Vec<(String, String)> = query_params
-            .unwrap_or_default()
-            .into_iter()
-            .collect();
 
-        let response = self.client
+        let params: Vec<(String, String)> = query_params.unwrap_or_default().into_iter().collect();
+
+        let response = self
+            .client
             .get(&url)
             .header("Authorization", self.auth_header())
             .query(&params)
@@ -88,7 +89,8 @@ impl ReadwiseClient {
     }
 
     pub async fn fetch_highlights_from_url(&self, url: &str) -> Result<HighlightsResponse> {
-        let response = self.client
+        let response = self
+            .client
             .get(url)
             .header("Authorization", self.auth_header())
             .send()
