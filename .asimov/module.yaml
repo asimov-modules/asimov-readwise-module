@@ -1,16 +1,15 @@
 # See: https://asimov-specs.github.io/module-manifest/
 ---
-name: template
-label: Template
-title: ASIMOV Template Module
-summary: Fork this to create your own module!
+name: asimov-readwise-module
+label: ASIMOV Readwise Module
+summary: Data import powered by the Readwise platform.
 links:
-  - https://github.com/asimov-modules/asimov-template-module
-  - https://crates.io/crates/asimov-template-module
+  - https://github.com/asimov-modules/asimov-readwise-module
+  - https://crates.io/crates/asimov-readwise-module
 
 provides:
   programs:
-    - asimov-template-emitter
+    - asimov-readwise-fetcher
 
 handles:
   url_protocols:
