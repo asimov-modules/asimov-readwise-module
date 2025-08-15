@@ -7,7 +7,6 @@ use anyhow::Result;
 use reqwest::Client;
 use std::collections::HashMap;
 
-/// Readwise API configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReadwiseConfig {
     pub base_url: String,
@@ -22,13 +21,12 @@ impl Default for ReadwiseConfig {
             base_url: "https://readwise.io/api/v2".to_string(),
             access_token: String::new(),
             timeout: 30,
-            rate_limit: 20, // Readwise limit for highlight endpoints
+            rate_limit: 20,
         }
     }
 }
 
 impl ReadwiseConfig {
-    /// Create a new Readwise configuration
     pub fn new(access_token: String) -> Self {
         Self {
             access_token,
@@ -36,32 +34,27 @@ impl ReadwiseConfig {
         }
     }
 
-    /// Create with custom base URL
     pub fn with_base_url(mut self, base_url: String) -> Self {
         self.base_url = base_url;
         self
     }
 
-    /// Create with custom timeout
     pub fn with_timeout(mut self, timeout: u64) -> Self {
         self.timeout = timeout;
         self
     }
 
-    /// Build the full API endpoint URL
     pub fn endpoint_url(&self, path: &str) -> String {
         format!("{}{}", self.base_url, path)
     }
 }
 
-/// Readwise API client
 pub struct ReadwiseClient {
     config: ReadwiseConfig,
     client: Client,
 }
 
 impl ReadwiseClient {
-    /// Create a new Readwise client
     pub fn new(config: ReadwiseConfig) -> Result<Self> {
         let client = Client::builder()
             .timeout(std::time::Duration::from_secs(config.timeout))
@@ -70,12 +63,10 @@ impl ReadwiseClient {
         Ok(Self { config, client })
     }
 
-    /// Get the authorization header
     fn auth_header(&self) -> String {
         format!("Token {}", self.config.access_token)
     }
 
-    /// Fetch highlights from Readwise
     pub async fn fetch_highlights(&self, query_params: Option<HashMap<String, String>>) -> Result<HighlightsResponse> {
         let url = self.config.endpoint_url("/highlights/");
         
@@ -96,7 +87,6 @@ impl ReadwiseClient {
         Ok(highlights)
     }
 
-    /// Fetch highlights from Readwise using a full URL with query parameters
     pub async fn fetch_highlights_from_url(&self, url: &str) -> Result<HighlightsResponse> {
         let response = self.client
             .get(url)
