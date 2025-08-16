@@ -95,3 +95,39 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
 
     Ok(EX_OK)
 }
+
+#[cfg(test)]
+mod tests {
+    use asimov_readwise_module::find_provider_for;
+    use asimov_readwise_module::providers::ReadwiseType;
+
+    #[test]
+    fn test_find_provider_for_highlights() {
+        let url = "https://readwise.io/api/v2/highlights/?page_size=5";
+        let provider = find_provider_for(url);
+        assert!(provider.is_some());
+        assert_eq!(provider.unwrap().id, ReadwiseType::HIGHLIGHTS_ID);
+    }
+
+    #[test]
+    fn test_find_provider_for_books() {
+        let url = "https://readwise.io/api/v2/books/?page_size=5";
+        let provider = find_provider_for(url);
+        assert!(provider.is_some());
+        assert_eq!(provider.unwrap().id, ReadwiseType::BOOKLIST_ID);
+    }
+
+    #[test]
+    fn test_find_provider_for_unsupported_url() {
+        let url = "https://example.com/api/books";
+        let provider = find_provider_for(url);
+        assert!(provider.is_none());
+    }
+
+    #[test]
+    fn test_provider_brand() {
+        let url = "https://readwise.io/api/v2/highlights/";
+        let provider = find_provider_for(url).unwrap();
+        assert_eq!(provider.brand, "Readwise");
+    }
+}

@@ -74,3 +74,24 @@ impl ReadwiseClient {
         Ok(booklist)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::types::ReadwiseConfig;
+
+    #[test]
+    fn test_readwise_config_new() {
+        let config = ReadwiseConfig::new("test_token".to_string());
+        assert_eq!(config.access_token, "test_token");
+        assert_eq!(config.base_url, "https://readwise.io/api/v2");
+    }
+
+    #[test]
+    fn test_auth_header() {
+        let config = ReadwiseConfig::new("test_token".to_string());
+        let client = ReadwiseClient::new(config).unwrap();
+        let header = client.auth_header();
+        assert_eq!(header, "Token test_token");
+    }
+}
