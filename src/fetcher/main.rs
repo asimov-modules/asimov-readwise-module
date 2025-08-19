@@ -40,7 +40,7 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         return Ok(EX_CONFIG);
     };
 
-    let config = asimov_readwise_module::api::types::types::ReadwiseConfig::new(
+    let config = asimov_readwise_module::api::types::ReadwiseConfig::new(
         api_key.expose_secret().to_string(),
     );
 

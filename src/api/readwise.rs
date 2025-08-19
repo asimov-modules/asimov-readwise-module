@@ -1,14 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(unused)]
-
-use crate::api::types::types::{
-    Book, BookListResponse, Highlight, HighlightRequest, HighlightsResponse, ReadwiseConfig,
-    SimpleTag, SimpleTagsResponse, Tag, TagsResponse,
-};
+use crate::api::types::{BookListResponse, HighlightsResponse, ReadwiseConfig};
 use anyhow::Result;
 use reqwest::Client;
-use std::collections::HashMap;
 
 pub struct ReadwiseClient {
     config: ReadwiseConfig,
@@ -93,51 +87,66 @@ impl ReadwiseClient {
     }
 
     pub async fn fetch_highlight_tags(&self) -> Result<Vec<serde_json::Value>> {
-        let highlights = self.fetch_highlights(None, None).await?;
+        let mut all_tags = std::collections::HashMap::new();
+        let mut page = 1;
+        let page_size = 100;
 
-        let mut tags = std::collections::HashMap::new();
+        loop {
+            let highlights = self.fetch_highlights(Some(page_size), Some(page)).await?;
 
-        if let Some(results) = highlights.results {
-            for highlight in results {
-                if let Some(highlight_id) = highlight.id {
-                    let tags_url = self.endpoint_url(&format!("/highlights/{}/tags", highlight_id));
+            if let Some(results) = highlights.results {
+                if results.is_empty() {
+                    break;
+                }
 
-                    let response = self
-                        .client
-                        .get(&tags_url)
-                        .header("Authorization", self.auth_header())
-                        .send()
-                        .await?;
+                for highlight in results {
+                    if let Some(highlight_id) = highlight.id {
+                        let tags_url =
+                            self.endpoint_url(&format!("/highlights/{}/tags", highlight_id));
 
-                    let tags_response = response.text().await?;
+                        let response = self
+                            .client
+                            .get(&tags_url)
+                            .header("Authorization", self.auth_header())
+                            .send()
+                            .await?;
 
-                    if let Ok(tags_data) = serde_json::from_str::<serde_json::Value>(&tags_response)
-                    {
-                        if let Some(tag_results) =
-                            tags_data.get("results").and_then(|r| r.as_array())
+                        let tags_response = response.text().await?;
+
+                        if let Ok(tags_data) =
+                            serde_json::from_str::<serde_json::Value>(&tags_response)
                         {
-                            for tag in tag_results {
-                                if let (Some(name), Some(id)) = (tag.get("name"), tag.get("id")) {
-                                    if let (Some(name_str), Some(id_num)) =
-                                        (name.as_str(), id.as_u64())
+                            if let Some(tag_results) =
+                                tags_data.get("results").and_then(|r| r.as_array())
+                            {
+                                for tag in tag_results {
+                                    if let (Some(name), Some(id)) = (tag.get("name"), tag.get("id"))
                                     {
-                                        tags.insert(
-                                            name_str.to_string(),
-                                            serde_json::json!({
-                                                "name": name_str,
-                                                "updated": id_num
-                                            }),
-                                        );
+                                        if let (Some(name_str), Some(id_num)) =
+                                            (name.as_str(), id.as_u64())
+                                        {
+                                            all_tags.insert(
+                                                name_str.to_string(),
+                                                serde_json::json!({
+                                                    "name": name_str,
+                                                    "id": id_num
+                                                }),
+                                            );
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                page += 1;
+            } else {
+                break;
             }
         }
 
-        Ok(tags.values().cloned().collect())
+        Ok(all_tags.values().cloned().collect())
     }
 }
 

@@ -31,9 +31,8 @@
     "items": [
       .[] | {
         "@type": "know:Tag",
-        "id": (.updated | tostring),
-        "name": .name,
-        "updated": .updated
+        "id": (.id | tostring),
+        "name": .name
       }
     ]
   }

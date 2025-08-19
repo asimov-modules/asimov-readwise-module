@@ -85,8 +85,21 @@ mod tests {
         let sample_data = json!([
             {
                 "id": 789,
-                "name": "Sample Tag",
-                "updated": 1234567890
+                "name": "Sample Tag"
+            }
+        ]);
+
+        let result = filter.filter_json(sample_data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_tags_jq_with_fallback_data() {
+        let filter = tags();
+        let sample_data = json!([
+            {
+                "id": 1234567890,
+                "name": "Sample Tag"
             }
         ]);
 
