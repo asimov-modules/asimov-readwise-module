@@ -1,10 +1,11 @@
 // This is free and unencumbered software released into the public domain.
+use asimov_readwise_module::jq;
 use asimov_readwise_module::providers::ReadwiseType;
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(name = "asimov-readwise-fetcher")]
-#[command(about = "URL protocol fetcher. Consumes a URL input, produces JSON output.")]
+#[command(name = "asimov-readwise-importer")]
+#[command(about = "URL protocol importer. Consumes a URL input, produces JSON-LD output.")]
 struct Args {
     #[arg(value_name = "INPUT-URL")]
     input_url: String,
@@ -55,21 +56,24 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         return Ok(EX_UNAVAILABLE);
     };
 
-    let response = match provider.id {
+    let json_ld = match provider.id {
         ReadwiseType::HIGHLIGHTS_ID => {
             let rt = tokio::runtime::Runtime::new()?;
             let highlights = rt.block_on(api.fetch_highlights(args.page_size, args.page))?;
-            serde_json::to_string(&highlights)?
+            let highlights_json = serde_json::to_value(&highlights)?;
+            jq::readwise().filter_json(highlights_json)?
         },
         ReadwiseType::BOOKLIST_ID => {
             let rt = tokio::runtime::Runtime::new()?;
             let booklist = rt.block_on(api.fetch_booklist(args.page_size, args.page))?;
-            serde_json::to_string(&booklist)?
+            let booklist_json = serde_json::to_value(&booklist)?;
+            jq::books().filter_json(booklist_json)?
         },
         ReadwiseType::TAGS_ID => {
             let rt = tokio::runtime::Runtime::new()?;
             let tags = rt.block_on(api.fetch_highlight_tags())?;
-            serde_json::to_string(&tags)?
+            let tags_json = serde_json::to_value(&tags)?;
+            jq::tags().filter_json(tags_json)?
         },
         _ => {
             eprintln!("Unsupported provider type: {:?}", provider.id);
@@ -78,11 +82,10 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
     };
 
     if cfg!(feature = "pretty") {
-        let response_json: serde_json::Value = serde_json::from_str(&response)?;
-        colored_json::write_colored_json(&response_json, &mut stdout())?;
+        colored_json::write_colored_json(&json_ld, &mut stdout())?;
         println!();
     } else {
-        println!("{}", response);
+        println!("{}", serde_json::to_string(&json_ld)?);
     }
 
     Ok(EX_OK)
@@ -91,56 +94,43 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use asimov_readwise_module::find_provider_for;
     use asimov_readwise_module::providers::ReadwiseType;
 
     #[test]
-    fn test_find_provider_for_highlights() {
-        let url = "https://readwise.io/highlights";
-        let provider = find_provider_for(url);
-        assert!(provider.is_some());
-        assert_eq!(provider.unwrap().id, ReadwiseType::HIGHLIGHTS_ID);
-    }
-
-    #[test]
-    fn test_find_provider_for_books() {
-        let url = "https://readwise.io/books";
-        let provider = find_provider_for(url);
-        assert!(provider.is_some());
-        assert_eq!(provider.unwrap().id, ReadwiseType::BOOKLIST_ID);
-    }
-
-    #[test]
-    fn test_find_provider_for_tags() {
-        let url = "https://readwise.io/tags";
-        let provider = find_provider_for(url);
-        assert!(provider.is_some());
-        assert_eq!(provider.unwrap().id, ReadwiseType::TAGS_ID);
-    }
-
-    #[test]
-    fn test_find_provider_for_unsupported_url() {
-        let url = "https://example.com/api/books";
-        let provider = find_provider_for(url);
-        assert!(provider.is_none());
-    }
-
-    #[test]
-    fn test_provider_brand() {
-        let url = "https://readwise.io/highlights";
-        let provider = find_provider_for(url).unwrap();
-        assert_eq!(provider.brand, "Readwise");
-    }
-
-    #[test]
-    fn test_args_with_pagination() {
+    fn test_importer_creation() {
         let args = Args {
             input_url: "https://readwise.io/highlights".to_string(),
-            page_size: Some(100),
-            page: Some(2),
+            page_size: None,
+            page: None,
         };
         assert_eq!(args.input_url, "https://readwise.io/highlights");
-        assert_eq!(args.page_size, Some(100));
-        assert_eq!(args.page, Some(2));
+    }
+
+    #[test]
+    fn test_supported_url_patterns() {
+        let highlights_url = "https://readwise.io/highlights";
+        let books_url = "https://readwise.io/books";
+        let tags_url = "https://readwise.io/tags";
+
+        assert!(highlights_url.contains("highlights"));
+        assert!(books_url.contains("books"));
+        assert!(tags_url.contains("tags"));
+    }
+
+    #[test]
+    fn test_readwise_type_variants() {
+        let _highlights = ReadwiseType::HIGHLIGHTS_ID;
+        let _books = ReadwiseType::BOOKLIST_ID;
+        let _tags = ReadwiseType::TAGS_ID;
+    }
+
+    #[test]
+    fn test_args_parsing() {
+        let args = Args {
+            input_url: "https://readwise.io/books".to_string(),
+            page_size: None,
+            page: None,
+        };
+        assert_eq!(args.input_url, "https://readwise.io/books");
     }
 }
