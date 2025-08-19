@@ -113,10 +113,31 @@ pub struct Book {
 pub type BookListResponse = PaginatedResponse<Book>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tag {
+    pub id: Option<u64>,
+    pub name: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+pub type TagsResponse = PaginatedResponse<Tag>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimpleTag {
+    pub name: Option<String>,
+    pub updated: Option<i64>,
+    pub count: Option<u32>,
+}
+
+pub type SimpleTagsResponse = Vec<SimpleTag>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ApiResponse {
     Highlights(HighlightsResponse),
     BookList(BookListResponse),
+    Tags(TagsResponse),
+    SimpleTags(SimpleTagsResponse),
 }
 
 pub use Book as BookResponse;
