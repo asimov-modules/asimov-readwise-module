@@ -56,3 +56,8 @@ lto = "thin"
 name = "asimov-readwise-fetcher"
 path = "src/fetcher/main.rs"
 required-features = ["cli"]
+
+[[bin]]
+name = "asimov-readwise-importer"
+path = "src/importer/main.rs"
+required-features = ["cli"]
