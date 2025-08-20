@@ -1,23 +1,20 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::api::types::ReadwiseType;
 use crate::providers::provider::Provider;
-use crate::providers::types::ReadwiseType;
 
 pub static READWISE_HIGHLIGHTS: Provider = Provider {
     id: ReadwiseType::HIGHLIGHTS_ID,
-    brand: "Readwise",
     url: "https://readwise.io/highlights",
 };
 
 pub static READWISE_BOOKLIST: Provider = Provider {
     id: ReadwiseType::BOOKLIST_ID,
-    brand: "Readwise",
     url: "https://readwise.io/books",
 };
 
 pub static READWISE_TAGS: Provider = Provider {
     id: ReadwiseType::TAGS_ID,
-    brand: "Readwise",
     url: "https://readwise.io/tags",
 };
 

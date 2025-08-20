@@ -9,10 +9,11 @@
 ## ✨ Features
 
 - 📚 **Import Highlights**: Fetch and convert Readwise highlights to JSON-LD
-- 📖 **Import Books**: Fetch and convert Readwise book lists to JSON-LD  
+- 📖 **Import Books**: Fetch and convert Readwise book lists to JSON-LD
 - 🏷️ **Import Tags**: Fetch and convert Readwise tags to JSON-LD
 - 🔄 **JSON-LD Output**: Structured data compatible with [KNOW] ontology
 - ⚡ **Fast & Reliable**: Built with Rust for performance and safety
+- 🚦 **Rate Limit Aware**: Respects Readwise API limits and provides clear error handling
 
 ## 🛠️ Prerequisites
 
@@ -22,21 +23,26 @@
 
 ## ⬇️ Installation
 
-### Installation with the [ASIMOV CLI]
+### Installation from Package Managers
 
 ```bash
-asimov module install readwise -v
-```
+# From PyPI (Python)
+pip install -U asimov-readwise-module
 
-### Installation from Source Code
+# From RubyGems (Ruby)
+gem install asimov-readwise-module
 
-```bash
+# From NPM (Node.js)
+npm install -g asimov-readwise-module
+
+# From Cargo (Rust)
 cargo install asimov-readwise-module
 ```
 
 ## 👉 Examples
 
 ### Import Highlights
+
 ```bash
 # Import all highlights (transparent pagination)
 asimov-readwise-importer https://readwise.io/highlights
@@ -49,6 +55,7 @@ asimov-readwise-importer https://readwise.io/highlights --page 2 --page-size 50
 ```
 
 ### Import Books
+
 ```bash
 # Import all books (transparent pagination)
 asimov-readwise-importer https://readwise.io/books
@@ -58,8 +65,22 @@ asimov-readwise-importer https://readwise.io/books --page-size 50
 ```
 
 ### Import Tags
+
 ```bash
 asimov-readwise-importer https://readwise.io/tags
+```
+
+### Other Commands
+
+```bash
+# Show version information
+asimov-readwise-importer --version
+
+# Show license information
+asimov-readwise-importer --license
+
+# Show help
+asimov-readwise-importer --help
 ```
 
 ## ⚙ Configuration
@@ -73,48 +94,22 @@ export READWISE_API_KEY="your-api-key-here"
 ```
 
 Or use a `.env` file:
+
 ```env
 READWISE_API_KEY=your-api-key-here
 ```
 
-Get your API key from: https://readwise.io/access_token
+Get your API key from: <https://readwise.io/access_token>
 
-## 📚 Reference
+### Rate Limiting
 
-### Installed Binaries
+**Heads up**: This module plays nice with Readwise's API limits. If you get HTTP 429 errors (too many requests):
 
-- `asimov-readwise-importer` - Converts Readwise URLs to JSON-LD
+- **Just wait a bit**: The API will throw an error if you're going too fast
+- **No auto-retry**: We don't automatically retry failed requests
+- **Take it slow**: If you're grabbing lots of data, give it some breathing room
 
-### `asimov-readwise-importer`
-
-URL protocol importer. Consumes a URL input, produces JSON-LD output.
-
-```
-Usage: asimov-readwise-importer [OPTIONS] <INPUT-URL>
-
-Arguments:
-  <INPUT-URL>  Readwise URL to import
-
-Options:
-      --page-size <SIZE>   Page size (number of items per page, default: fetch all)
-      --page <NUM>         Specific page number to fetch (1-based, default: fetch all)
-  -h, --help              Print help
-
-Supported URLs:
-  - https://readwise.io/highlights
-  - https://readwise.io/books  
-  - https://readwise.io/tags
-
-Pagination Examples:
-  # Fetch all data (transparent pagination)
-  asimov-readwise-importer https://readwise.io/highlights
-  
-  # Fetch only first 100 items
-  asimov-readwise-importer https://readwise.io/highlights --page-size 100
-  
-  # Fetch page 3 with 50 items per page
-  asimov-readwise-importer https://readwise.io/highlights --page 3 --page-size 50
-```
+**The limits**: This plugin is limited to 20 requests per minute due to Readwise's API restrictions.
 
 ## 👨‍💻 Development
 

@@ -3,6 +3,5 @@
 #[derive(Clone, Debug, Default)]
 pub struct Provider {
     pub id: &'static str,
-    pub brand: &'static str,
     pub url: &'static str,
 }

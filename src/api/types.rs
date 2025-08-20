@@ -3,48 +3,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReadwiseConfig {
-    pub base_url: String,
-    pub access_token: String,
-    pub timeout: u64,
-    pub rate_limit: u32,
-}
-
-impl Default for ReadwiseConfig {
-    fn default() -> Self {
-        Self {
-            base_url: "https://readwise.io/api/v2".to_string(),
-            access_token: String::new(),
-            timeout: 30,
-            rate_limit: 20,
-        }
-    }
-}
-
-impl ReadwiseConfig {
-    pub fn new(access_token: String) -> Self {
-        Self {
-            access_token,
-            ..Default::default()
-        }
-    }
-
-    pub fn with_base_url(mut self, base_url: String) -> Self {
-        self.base_url = base_url;
-        self
-    }
-
-    pub fn with_timeout(mut self, timeout: u64) -> Self {
-        self.timeout = timeout;
-        self
-    }
-
-    pub fn endpoint_url(&self, path: &str) -> String {
-        format!("{}{}", self.base_url, path)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaginatedResponse<T> {
     pub count: Option<u32>,
     pub next: Option<String>,
@@ -142,3 +100,24 @@ pub enum ApiResponse {
 
 pub use Book as BookResponse;
 pub use Highlight as HighlightResponse;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ReadwiseType {
+    Highlights,
+    Booklist,
+    Tags,
+}
+
+impl ReadwiseType {
+    pub const HIGHLIGHTS_ID: &'static str = "readwise-highlights";
+    pub const BOOKLIST_ID: &'static str = "readwise-booklist";
+    pub const TAGS_ID: &'static str = "readwise-tags";
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ReadwiseType::Highlights => Self::HIGHLIGHTS_ID,
+            ReadwiseType::Booklist => Self::BOOKLIST_ID,
+            ReadwiseType::Tags => Self::TAGS_ID,
+        }
+    }
+}
