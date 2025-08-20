@@ -1,20 +1,41 @@
 # See: https://asimov-specs.github.io/module-manifest/
 ---
-name: template
-label: Template
-title: ASIMOV Template Module
-summary: Fork this to create your own module!
+name: asimov-readwise-module
+label: ASIMOV Readwise Module
+summary: Data import powered by the Readwise platform via official API endpoints.
 links:
-  - https://github.com/asimov-modules/asimov-template-module
-  - https://crates.io/crates/asimov-template-module
+  - https://github.com/asimov-modules/asimov-readwise-module
+  - https://crates.io/crates/asimov-readwise-module
 
 provides:
   programs:
-    - asimov-template-emitter
+    asimov-readwise-fetcher:
+      description: "Fetch raw data from Readwise API"
+      arguments:
+        - name: "INPUT-URL"
+          description: "Readwise URL to fetch"
+          required: true
+        - name: "--page-size"
+          description: "Items per page"
+          required: false
+        - name: "--page"
+          description: "Page number to fetch"
+          required: false
+    asimov-readwise-importer:
+      description: "Convert Readwise URLs to JSON-LD"
+      arguments:
+        - name: "INPUT-URL"
+          description: "Readwise URL to import"
+          required: true
+        - name: "--page-size"
+          description: "Items per page"
+          required: false
+        - name: "--page"
+          description: "Page number to fetch"
+          required: false
 
 handles:
-  url_protocols:
   url_prefixes:
-  url_patterns:
-  file_extensions:
-  content_types:
+    - https://readwise.io/highlights
+    - https://readwise.io/books
+    - https://readwise.io/tags
