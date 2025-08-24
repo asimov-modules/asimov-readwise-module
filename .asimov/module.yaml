@@ -1,6 +1,6 @@
 # See: https://asimov-specs.github.io/module-manifest/
 ---
-name: asimov-readwise-module
+name: readwise
 label: ASIMOV Readwise Module
 summary: Data import powered by the Readwise platform via official API endpoints.
 links:
