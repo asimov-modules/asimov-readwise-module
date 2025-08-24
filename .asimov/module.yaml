@@ -9,30 +9,8 @@ links:
 
 provides:
   programs:
-    asimov-readwise-fetcher:
-      description: "Fetch raw data from Readwise API"
-      arguments:
-        - name: "INPUT-URL"
-          description: "Readwise URL to fetch"
-          required: true
-        - name: "--page-size"
-          description: "Items per page"
-          required: false
-        - name: "--page"
-          description: "Page number to fetch"
-          required: false
-    asimov-readwise-importer:
-      description: "Convert Readwise URLs to JSON-LD"
-      arguments:
-        - name: "INPUT-URL"
-          description: "Readwise URL to import"
-          required: true
-        - name: "--page-size"
-          description: "Items per page"
-          required: false
-        - name: "--page"
-          description: "Page number to fetch"
-          required: false
+    - asimov-readwise-fetcher
+    - asimov-readwise-importer
 
 handles:
   url_prefixes:
