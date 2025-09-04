@@ -23,19 +23,15 @@
 
 ## ⬇️ Installation
 
-### Installation from Package Managers
+### Installation with the [ASIMOV CLI]
 
 ```bash
-# From PyPI (Python)
-pip install -U asimov-readwise-module
+asimov module install readwise -v
+```
 
-# From RubyGems (Ruby)
-gem install asimov-readwise-module
+### Installation from Source Code
 
-# From NPM (Node.js)
-npm install -g asimov-readwise-module
-
-# From Cargo (Rust)
+```bash
 cargo install asimov-readwise-module
 ```
 
