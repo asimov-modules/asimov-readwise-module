@@ -1,7 +1,13 @@
 // This is free and unencumbered software released into the public domain.
 use asimov_readwise_module::api::types::ReadwiseType;
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use clientele::StandardOptions;
+
+#[derive(Debug, Clone, ValueEnum)]
+enum OutputFormat {
+    Json,
+    Jsonl,
+}
 
 #[derive(Parser)]
 #[command(name = "asimov-readwise-fetcher")]
@@ -16,6 +22,9 @@ struct Options {
     #[arg(long, value_name = "NUM")]
     page: Option<usize>,
 
+    #[arg(value_name = "FORMAT", short = 'o', long)]
+    output: Option<OutputFormat>,
+
     #[clap(flatten)]
     flags: StandardOptions,
 }
@@ -25,7 +34,6 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
     use asimov_module::secrecy::ExposeSecret;
     use asimov_readwise_module::{api::readwise::ReadwiseClient, find_provider_for};
     use clientele::SysexitsError::*;
-    use std::io::stdout;
 
     clientele::dotenv().ok();
 
@@ -68,31 +76,62 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         return Ok(EX_UNAVAILABLE);
     };
 
-    let response = match provider.id {
+    let output_format = options.output.unwrap_or(OutputFormat::Json);
+
+    match provider.id {
         ReadwiseType::HIGHLIGHTS_ID => {
             let highlights = api.fetch_highlights(options.page_size, options.page)?;
-            serde_json::to_string(&highlights)?
+            match output_format {
+                OutputFormat::Json => {
+                    let response = serde_json::to_string(&highlights)?;
+                    println!("{}", response);
+                },
+                OutputFormat::Jsonl => {
+                    if let Some(results) = highlights.results {
+                        for item in results {
+                            let line = serde_json::to_string(&item)?;
+                            println!("{}", line);
+                        }
+                    }
+                },
+            }
         },
         ReadwiseType::BOOKLIST_ID => {
             let booklist = api.fetch_booklist(options.page_size, options.page)?;
-            serde_json::to_string(&booklist)?
+            match output_format {
+                OutputFormat::Json => {
+                    let response = serde_json::to_string(&booklist)?;
+                    println!("{}", response);
+                },
+                OutputFormat::Jsonl => {
+                    if let Some(results) = booklist.results {
+                        for item in results {
+                            let line = serde_json::to_string(&item)?;
+                            println!("{}", line);
+                        }
+                    }
+                },
+            }
         },
         ReadwiseType::TAGS_ID => {
             let tags = api.fetch_highlight_tags()?;
-            serde_json::to_string(&tags)?
+            match output_format {
+                OutputFormat::Json => {
+                    let response = serde_json::to_string(&tags)?;
+                    println!("{}", response);
+                },
+                OutputFormat::Jsonl => {
+                    for item in tags {
+                        let line = serde_json::to_string(&item)?;
+                        println!("{}", line);
+                    }
+                },
+            }
         },
         _ => {
             eprintln!("Unsupported provider type: {:?}", provider.id);
             return Ok(EX_UNAVAILABLE);
         },
-    };
-
-    if cfg!(feature = "pretty") {
-        let response_json: serde_json::Value = serde_json::from_str(&response)?;
-        colored_json::write_colored_json(&response_json, &mut stdout())?;
-        println!();
-    } else {
-        println!("{}", response);
     }
 
     Ok(EX_OK)

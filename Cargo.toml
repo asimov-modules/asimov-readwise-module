@@ -18,13 +18,12 @@ publish = false
 
 [features]
 default = ["all", "cli", "std"]
-all = ["pretty", "tracing"]
+all = ["tracing"]
 cli = ["asimov-module/cli", "std", "dep:clap", "dep:clientele"]
 std = ["asimov-module/std", "clap?/std", "clientele?/std"]
 unstable = []
 
 # Optional features:
-pretty = []
 tracing = ["asimov-module/tracing", "clientele?/tracing"]
 
 [dependencies]
@@ -34,7 +33,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 tracing-subscriber = "0.3"
-colored_json = "2.1"
 
 # Optional integrations:
 clap = { version = "4.5", default-features = false, features = [
