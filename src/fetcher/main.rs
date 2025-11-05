@@ -1,13 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 use asimov_readwise_module::api::types::ReadwiseType;
-use clap::{Parser, ValueEnum};
+use asimov_readwise_module::output::{OutputFormat, write_json_output, write_jsonl_from_results};
+use clap::Parser;
 use clientele::StandardOptions;
-
-#[derive(Debug, Clone, ValueEnum)]
-enum OutputFormat {
-    Json,
-    Jsonl,
-}
 
 #[derive(Parser)]
 #[command(name = "asimov-readwise-fetcher")]
@@ -76,50 +71,27 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         return Ok(EX_UNAVAILABLE);
     };
 
-    let output_format = options.output.unwrap_or(OutputFormat::Json);
+    let output_format = options.output.unwrap_or_default();
 
     match provider.id {
         ReadwiseType::HIGHLIGHTS_ID => {
             let highlights = api.fetch_highlights(options.page_size, options.page)?;
             match output_format {
-                OutputFormat::Json => {
-                    let response = serde_json::to_string(&highlights)?;
-                    println!("{}", response);
-                },
-                OutputFormat::Jsonl => {
-                    if let Some(results) = highlights.results {
-                        for item in results {
-                            let line = serde_json::to_string(&item)?;
-                            println!("{}", line);
-                        }
-                    }
-                },
+                OutputFormat::Json => write_json_output(&highlights)?,
+                OutputFormat::Jsonl => write_jsonl_from_results(highlights.results.as_ref())?,
             }
         },
         ReadwiseType::BOOKLIST_ID => {
             let booklist = api.fetch_booklist(options.page_size, options.page)?;
             match output_format {
-                OutputFormat::Json => {
-                    let response = serde_json::to_string(&booklist)?;
-                    println!("{}", response);
-                },
-                OutputFormat::Jsonl => {
-                    if let Some(results) = booklist.results {
-                        for item in results {
-                            let line = serde_json::to_string(&item)?;
-                            println!("{}", line);
-                        }
-                    }
-                },
+                OutputFormat::Json => write_json_output(&booklist)?,
+                OutputFormat::Jsonl => write_jsonl_from_results(booklist.results.as_ref())?,
             }
         },
         ReadwiseType::TAGS_ID => {
             let tags = api.fetch_highlight_tags()?;
             match output_format {
-                OutputFormat::Json => {
-                    let response = serde_json::to_string(&tags)?;
-                    println!("{}", response);
-                },
+                OutputFormat::Json => write_json_output(&tags)?,
                 OutputFormat::Jsonl => {
                     for item in tags {
                         let line = serde_json::to_string(&item)?;

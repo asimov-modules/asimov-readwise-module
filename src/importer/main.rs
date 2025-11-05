@@ -1,14 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 use asimov_readwise_module::api::types::ReadwiseType;
 use asimov_readwise_module::jq;
-use clap::{Parser, ValueEnum};
+use asimov_readwise_module::output::{OutputFormat, write_jsonl_from_jsonld};
+use clap::Parser;
 use clientele::StandardOptions;
-
-#[derive(Debug, Clone, ValueEnum)]
-enum OutputFormat {
-    Json,
-    Jsonl,
-}
 
 #[derive(Parser)]
 #[command(name = "asimov-readwise-importer")]
@@ -99,35 +94,14 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         },
     };
 
-    let output_format = options.output.unwrap_or(OutputFormat::Json);
+    let output_format = options.output.unwrap_or_default();
 
     match output_format {
         OutputFormat::Json => {
             println!("{}", serde_json::to_string(&json_ld)?);
         },
         OutputFormat::Jsonl => {
-            let items = match provider.id {
-                ReadwiseType::HIGHLIGHTS_ID => json_ld
-                    .get("highlights")
-                    .and_then(|h| h.get("items"))
-                    .and_then(|i| i.as_array()),
-                ReadwiseType::BOOKLIST_ID => json_ld
-                    .get("books")
-                    .and_then(|b| b.get("items"))
-                    .and_then(|i| i.as_array()),
-                ReadwiseType::TAGS_ID => json_ld
-                    .get("tags")
-                    .and_then(|t| t.get("items"))
-                    .and_then(|i| i.as_array()),
-                _ => None,
-            };
-
-            if let Some(items_array) = items {
-                for item in items_array {
-                    let line = serde_json::to_string(item)?;
-                    println!("{}", line);
-                }
-            }
+            write_jsonl_from_jsonld(&json_ld, provider.id)?;
         },
     }
 
