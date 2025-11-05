@@ -107,21 +107,18 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         },
         OutputFormat::Jsonl => {
             let items = match provider.id {
-                ReadwiseType::HIGHLIGHTS_ID => {
-                    json_ld.get("highlights")
-                        .and_then(|h| h.get("items"))
-                        .and_then(|i| i.as_array())
-                },
-                ReadwiseType::BOOKLIST_ID => {
-                    json_ld.get("books")
-                        .and_then(|b| b.get("items"))
-                        .and_then(|i| i.as_array())
-                },
-                ReadwiseType::TAGS_ID => {
-                    json_ld.get("tags")
-                        .and_then(|t| t.get("items"))
-                        .and_then(|i| i.as_array())
-                },
+                ReadwiseType::HIGHLIGHTS_ID => json_ld
+                    .get("highlights")
+                    .and_then(|h| h.get("items"))
+                    .and_then(|i| i.as_array()),
+                ReadwiseType::BOOKLIST_ID => json_ld
+                    .get("books")
+                    .and_then(|b| b.get("items"))
+                    .and_then(|i| i.as_array()),
+                ReadwiseType::TAGS_ID => json_ld
+                    .get("tags")
+                    .and_then(|t| t.get("items"))
+                    .and_then(|i| i.as_array()),
                 _ => None,
             };
 
