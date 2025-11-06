@@ -2,7 +2,7 @@
 
 [package]
 name = "asimov-readwise-module"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["ASIMOV Community"]
 edition = "2024"
 #rust-version = "1.85"
@@ -14,7 +14,7 @@ repository = "https://github.com/asimov-modules/asimov-template-module"
 license = "Unlicense"
 keywords = ["asimov-module", "asimov", "ai"]
 categories = ["command-line-utilities", "text-processing"]
-publish = false
+publish = true
 
 [features]
 default = ["all", "cli", "std"]
@@ -36,11 +36,11 @@ tracing-subscriber = "0.3"
 
 # Optional integrations:
 clap = { version = "4.5", default-features = false, features = [
-    "std",
+  "std",
 ], optional = true }
 clientele = { version = "0.3.8", default-features = false, features = [
-    "clap",
-    "std",
+  "clap",
+  "std",
 ], optional = true }
 ureq = "3.1.0"
 
