@@ -4,6 +4,7 @@
 
 pub mod api;
 pub mod jq;
+pub mod output;
 pub mod providers;
 
 pub use providers::Provider;

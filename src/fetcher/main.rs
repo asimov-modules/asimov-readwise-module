@@ -1,5 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 use asimov_readwise_module::api::types::ReadwiseType;
+use asimov_readwise_module::output::{OutputFormat, write_json_output, write_jsonl_from_results};
 use clap::Parser;
 use clientele::StandardOptions;
 
@@ -16,6 +17,9 @@ struct Options {
     #[arg(long, value_name = "NUM")]
     page: Option<usize>,
 
+    #[arg(value_name = "FORMAT", short = 'o', long)]
+    output: Option<OutputFormat>,
+
     #[clap(flatten)]
     flags: StandardOptions,
 }
@@ -25,7 +29,6 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
     use asimov_module::secrecy::ExposeSecret;
     use asimov_readwise_module::{api::readwise::ReadwiseClient, find_provider_for};
     use clientele::SysexitsError::*;
-    use std::io::stdout;
 
     clientele::dotenv().ok();
 
@@ -68,31 +71,39 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         return Ok(EX_UNAVAILABLE);
     };
 
-    let response = match provider.id {
+    let output_format = options.output.unwrap_or_default();
+
+    match provider.id {
         ReadwiseType::HIGHLIGHTS_ID => {
             let highlights = api.fetch_highlights(options.page_size, options.page)?;
-            serde_json::to_string(&highlights)?
+            match output_format {
+                OutputFormat::Json => write_json_output(&highlights)?,
+                OutputFormat::Jsonl => write_jsonl_from_results(highlights.results.as_ref())?,
+            }
         },
         ReadwiseType::BOOKLIST_ID => {
             let booklist = api.fetch_booklist(options.page_size, options.page)?;
-            serde_json::to_string(&booklist)?
+            match output_format {
+                OutputFormat::Json => write_json_output(&booklist)?,
+                OutputFormat::Jsonl => write_jsonl_from_results(booklist.results.as_ref())?,
+            }
         },
         ReadwiseType::TAGS_ID => {
             let tags = api.fetch_highlight_tags()?;
-            serde_json::to_string(&tags)?
+            match output_format {
+                OutputFormat::Json => write_json_output(&tags)?,
+                OutputFormat::Jsonl => {
+                    for item in tags {
+                        let line = serde_json::to_string(&item)?;
+                        println!("{}", line);
+                    }
+                },
+            }
         },
         _ => {
             eprintln!("Unsupported provider type: {:?}", provider.id);
             return Ok(EX_UNAVAILABLE);
         },
-    };
-
-    if cfg!(feature = "pretty") {
-        let response_json: serde_json::Value = serde_json::from_str(&response)?;
-        colored_json::write_colored_json(&response_json, &mut stdout())?;
-        println!();
-    } else {
-        println!("{}", response);
     }
 
     Ok(EX_OK)

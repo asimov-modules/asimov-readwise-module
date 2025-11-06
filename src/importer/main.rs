@@ -1,6 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 use asimov_readwise_module::api::types::ReadwiseType;
 use asimov_readwise_module::jq;
+use asimov_readwise_module::output::{OutputFormat, write_jsonl_from_jsonld};
 use clap::Parser;
 use clientele::StandardOptions;
 
@@ -17,6 +18,9 @@ struct Options {
     #[arg(long, value_name = "NUM")]
     page: Option<usize>,
 
+    #[arg(value_name = "FORMAT", short = 'o', long)]
+    output: Option<OutputFormat>,
+
     #[clap(flatten)]
     flags: StandardOptions,
 }
@@ -26,7 +30,6 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
     use asimov_module::secrecy::ExposeSecret;
     use asimov_readwise_module::{api::readwise::ReadwiseClient, find_provider_for};
     use clientele::SysexitsError::*;
-    use std::io::stdout;
 
     clientele::dotenv().ok();
 
@@ -91,11 +94,15 @@ fn main() -> Result<clientele::SysexitsError, Box<dyn std::error::Error>> {
         },
     };
 
-    if cfg!(feature = "pretty") {
-        colored_json::write_colored_json(&json_ld, &mut stdout())?;
-        println!();
-    } else {
-        println!("{}", serde_json::to_string(&json_ld)?);
+    let output_format = options.output.unwrap_or_default();
+
+    match output_format {
+        OutputFormat::Json => {
+            println!("{}", serde_json::to_string(&json_ld)?);
+        },
+        OutputFormat::Jsonl => {
+            write_jsonl_from_jsonld(&json_ld, provider.id)?;
+        },
     }
 
     Ok(EX_OK)
